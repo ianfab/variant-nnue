@@ -1,381 +1,122 @@
-# Fairy-Stockfish
+<p align="center">
+  <img src="https://cdn.discordapp.com/attachments/724700045525647420/729135226365804594/SFNNUE2.png">
+</p>
+
+<h1 align="center">Stockfish NNUE</h1>
 
 ## Overview
 
-[![Build Status](https://travis-ci.org/ianfab/Fairy-Stockfish.svg?branch=master)](https://travis-ci.org/ianfab/Fairy-Stockfish)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/ianfab/Fairy-Stockfish?branch=master&svg=true)](https://ci.appveyor.com/project/ianfab/Fairy-Stockfish/branch/master)
-[![PyPI version](https://badge.fury.io/py/pyffish.svg)](https://badge.fury.io/py/pyffish)
-[![NPM version](https://img.shields.io/npm/v/ffish.svg?sanitize=true)](https://www.npmjs.com/package/ffish)
+Stockfish NNUE is a port of a shogi neural network named NNUE (efficiently updateable neural network backwards) to Stockfish 11. To learn more about the Stockfish chess engine, look [here](stockfish.md) for an overview and [here](https://github.com/official-stockfish/Stockfish) for the official repository.
 
-Fairy-Stockfish is a chess variant engine derived from [Stockfish](https://github.com/official-stockfish/Stockfish/) designed for the support of fairy chess variants and easy extensibility with more games. It can play various regional, historical, and modern chess variants as well as [games with user-defined rules](https://github.com/ianfab/Fairy-Stockfish/wiki/Variant-configuration). For [compatibility with graphical user interfaces](https://github.com/ianfab/Fairy-Stockfish/wiki/Usage) it supports the UCI, UCCI, USI, and CECP/XBoard protocols.
+## Building
 
-The goal of the project is to create an engine supporting a large variety of chess-like games, equipped with the powerful search of Stockfish. Despite its generality the [playing strength](https://github.com/ianfab/Fairy-Stockfish/wiki/Playing-strength) is on a very high level in almost all supported variants. Due to its multi-protocol support Fairy-Stockfish works with almost any chess variant GUI.
-
-## Installation
-You can download the [Windows executable](https://github.com/ianfab/Fairy-Stockfish/releases/latest/download/fairy-stockfish-largeboard_x86-64.exe) or [Linux binary](https://github.com/ianfab/Fairy-Stockfish/releases/latest/download/fairy-stockfish-largeboard_x86-64) from the [latest release](https://github.com/ianfab/Fairy-Stockfish/releases/latest) or [compile the program from source](https://github.com/ianfab/Fairy-Stockfish#compiling-stockfish-yourself-from-the-sources). The program comes without a graphical user interface, so you perhaps want to use it together with a [compatible GUI](https://github.com/ianfab/Fairy-Stockfish/wiki/Usage#guis), or play against it right away online at [pychess](https://www.pychess.org/). Read more about [how to use](https://github.com/ianfab/Fairy-Stockfish/wiki/Usage) Fairy-Stockfish in the wiki.
-
-## Contributing
-
-If you like this project, please support its development by [donating via paypal](https://paypal.me/FairyStockfish), by [contributing CPU time](https://github.com/ianfab/fishtest/wiki) to the framework for testing of code improvements, or by [contributing to the code](https://github.com/ianfab/Fairy-Stockfish/wiki/Contributing) or documentation. An [introduction to the code base](https://github.com/ianfab/Fairy-Stockfish/wiki/Understanding-the-code) can be found in the wiki.
-
-## Supported games
-
-The games currently supported besides chess are listed below. Fairy-Stockfish can also play user-defined variants loaded via a variant configuration file, see the file [`src/variants.ini`](https://github.com/ianfab/Fairy-Stockfish/blob/master/src/variants.ini) and the [wiki](https://github.com/ianfab/Fairy-Stockfish/wiki/Variant-configuration).
-
-### Regional and historical games
-- [Xiangqi](https://en.wikipedia.org/wiki/Xiangqi), [Manchu](https://en.wikipedia.org/wiki/Manchu_chess), [Minixiangqi](http://mlwi.magix.net/bg/minixiangqi.htm), [Supply chess](https://en.wikipedia.org/wiki/Xiangqi#Variations)
-- [Shogi](https://en.wikipedia.org/wiki/Shogi), [Shogi variants](https://github.com/ianfab/Fairy-Stockfish#shogi-variants)
-- [Janggi](https://en.wikipedia.org/wiki/Janggi)
-- [Makruk](https://en.wikipedia.org/wiki/Makruk), [ASEAN](http://hgm.nubati.net/rules/ASEAN.html), Makpong, Ai-Wok
-- [Ouk Chatrang](https://en.wikipedia.org/wiki/Makruk#Cambodian_chess), [Kar Ouk](https://en.wikipedia.org/wiki/Makruk#Cambodian_chess)
-- [Sittuyin](https://en.wikipedia.org/wiki/Sittuyin)
-- [Shatar](https://en.wikipedia.org/wiki/Shatar), [Jeson Mor](https://en.wikipedia.org/wiki/Jeson_Mor)
-- [Shatranj](https://en.wikipedia.org/wiki/Shatranj), [Courier](https://en.wikipedia.org/wiki/Courier_chess)
-
-### Chess variants
-- [Capablanca](https://en.wikipedia.org/wiki/Capablanca_Chess), [Janus](https://en.wikipedia.org/wiki/Janus_Chess), [Modern](https://en.wikipedia.org/wiki/Modern_Chess_(chess_variant)), [Chancellor](https://en.wikipedia.org/wiki/Chancellor_Chess), [Embassy](https://en.wikipedia.org/wiki/Embassy_Chess), [Gothic](https://www.chessvariants.com/large.dir/gothicchess.html), [Capablanca random chess](https://en.wikipedia.org/wiki/Capablanca_Random_Chess)
-- [Grand](https://en.wikipedia.org/wiki/Grand_Chess), [Shako](https://www.chessvariants.com/large.dir/shako.html), [Centaur](https://www.chessvariants.com/large.dir/contest/royalcourt.html)
-- [Chess960](https://en.wikipedia.org/wiki/Chess960), [Placement/Pre-Chess](https://www.chessvariants.com/link/placement-chess)
-- [Crazyhouse](https://en.wikipedia.org/wiki/Crazyhouse), [Loop](https://en.wikipedia.org/wiki/Crazyhouse#Variations), [Chessgi](https://en.wikipedia.org/wiki/Crazyhouse#Variations), [Pocket Knight](http://www.chessvariants.com/other.dir/pocket.html), Capablanca-Crazyhouse
-- [Bughouse](https://en.wikipedia.org/wiki/Bughouse_chess), [Koedem](http://schachclub-oetigheim.de/wp-content/uploads/2016/04/Koedem-rules.pdf)
-- [Seirawan](https://en.wikipedia.org/wiki/Seirawan_chess), Seirawan-Crazyhouse
-- [Amazon](https://en.wikipedia.org/wiki/Amazon_(chess)), [Chigorin](https://en.wikipedia.org/wiki/Chigorin_Chess), [Almost chess](https://en.wikipedia.org/wiki/Almost_Chess)
-- [Hoppel-Poppel](http://www.chessvariants.com/diffmove.dir/hoppel-poppel.html), New Zealand
-- [Antichess](https://lichess.org/variant/antichess), [Giveaway](http://www.chessvariants.com/diffobjective.dir/giveaway.old.html), [Suicide](https://www.freechess.org/Help/HelpFiles/suicide_chess.html), [Losers](https://www.chessclub.com/help/Wild17), [Codrus](http://www.binnewirtz.com/Schlagschach1.htm)
-- [Extinction](https://en.wikipedia.org/wiki/Extinction_chess), [Kinglet](https://en.wikipedia.org/wiki/V._R._Parton#Kinglet_Chess), Three Kings Chess
-- [King of the Hill](https://en.wikipedia.org/wiki/King_of_the_Hill_(chess)), [Racing Kings](https://en.wikipedia.org/wiki/V._R._Parton#Racing_Kings)
-- [Three-check](https://en.wikipedia.org/wiki/Three-check_chess), Five-check
-- [Los Alamos](https://en.wikipedia.org/wiki/Los_Alamos_chess)
-- [Horde](https://en.wikipedia.org/wiki/Dunsany%27s_Chess#Horde_Chess)
-- [Knightmate](https://www.chessvariants.com/diffobjective.dir/knightmate.html)
-
-### Shogi variants
-- [Minishogi](https://en.wikipedia.org/wiki/Minishogi), [EuroShogi](https://en.wikipedia.org/wiki/EuroShogi), [Judkins shogi](https://en.wikipedia.org/wiki/Judkins_shogi)
-- [Kyoto shogi](https://en.wikipedia.org/wiki/Kyoto_shogi), [Microshogi](https://en.wikipedia.org/wiki/Micro_shogi)
-- [Dobutsu shogi](https://en.wikipedia.org/wiki/Dōbutsu_shōgi), [Goro goro shogi](https://en.wikipedia.org/wiki/D%C5%8Dbutsu_sh%C5%8Dgi#Variation)
-
-### Related games
-- [Amazons](https://en.wikipedia.org/wiki/Game_of_the_Amazons)
-- [Ataxx](https://en.wikipedia.org/wiki/Ataxx)
-- [Breakthrough](https://en.wikipedia.org/wiki/Breakthrough_(board_game))
-- [Clobber](https://en.wikipedia.org/wiki/Clobber)
-
-## Help
-
-See the [Fairy-Stockfish Wiki](https://github.com/ianfab/Fairy-Stockfish/wiki) for more info, or if the required information is not available, open an [issue](https://github.com/ianfab/Fairy-Stockfish/issues).
-
-## Bindings
-
-Besides the C++ engine, this project also includes bindings for other programming languages in order to be able to use it as a library for chess variants. They support move, SAN, and FEN generation, as well as checking of game end conditions for all variants supported by Fairy-Stockfish. Since the bindings are using the C++ code, they are very performant compared to libraries directly written in the respective target language.  
-
-### Python
-
-The python binding [pyffish](https://pypi.org/project/pyffish/) contributed by [@gbtami](https://github.com/gbtami) is implemented in [pyffish.cpp](https://github.com/ianfab/Fairy-Stockfish/blob/master/src/pyffish.cpp). It is e.g. used in the backend for the [pychess server](https://github.com/gbtami/pychess-variants).
-
-### Javascript
-
-The javascript binding ffish.js contributed by [@QueensGambit](https://github.com/QueensGambit) is implemented in [ffishjs.cpp](https://github.com/ianfab/Fairy-Stockfish/blob/master/src/ffishjs.cpp). The compilation/binding to javascript is done using emscripten, see the [readme](https://github.com/ianfab/Fairy-Stockfish/tree/master/tests/js).
-
-## Ports
-
-### WASM
-
-A port of Fairy-Stockfish to WebAssembly is maintained at https://github.com/ianfab/stockfish.wasm.
-
-# Stockfish
-## Overview
-
-[![Build Status](https://travis-ci.org/official-stockfish/Stockfish.svg?branch=master)](https://travis-ci.org/official-stockfish/Stockfish)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/official-stockfish/Stockfish?branch=master&svg=true)](https://ci.appveyor.com/project/mcostalba/stockfish/branch/master)
-
-[Stockfish](https://stockfishchess.org) is a free, powerful UCI chess engine
-derived from Glaurung 2.1. Stockfish is not a complete chess program and requires a
-UCI-compatible graphical user interface (GUI) (e.g. XBoard with PolyGlot, Scid,
-Cute Chess, eboard, Arena, Sigma Chess, Shredder, Chess Partner or Fritz) in order
-to be used comfortably. Read the documentation for your GUI of choice for information
-about how to use Stockfish with it.
-
-The Stockfish engine features two evaluation functions for chess, the classical
-evaluation based on handcrafted terms, and the NNUE evaluation based on efficiently
-updateable neural networks. The classical evaluation runs efficiently on almost all
-CPU architectures, while the NNUE evaluation benefits from the vector
-intrinsics available on most CPUs (sse2, avx2, neon, or similar).
-
-
-## Files
-
-This distribution of Stockfish consists of the following files:
-
-  * Readme.md, the file you are currently reading.
-
-  * Copying.txt, a text file containing the GNU General Public License version 3.
-
-  * src, a subdirectory containing the full source code, including a Makefile
-    that can be used to compile Stockfish on Unix-like systems.
-
-  * a file with the .nnue extension, storing the neural network for the NNUE 
-    evaluation. Binary distributions will have this file embedded.
-
-Note: to use the NNUE evaluation, the additional data file with neural network parameters
-needs to be available. Normally, this file is already embedded in the binary or it can be downloaded.
-The filename for the default (recommended) net can be found as the default
-value of the `EvalFile` UCI option, with the format `nn-[SHA256 first 12 digits].nnue`
-(for instance, `nn-c157e0a5755b.nnue`). This file can be downloaded from
+To compile:
 ```
-https://tests.stockfishchess.org/api/nn/[filename]
-```
-replacing `[filename]` as needed.
-
-
-## UCI options
-
-Currently, Stockfish has the following UCI options:
-
-  * #### Threads
-    The number of CPU threads used for searching a position. For best performance, set
-    this equal to the number of CPU cores available.
-
-  * #### Hash
-    The size of the hash table in MB. It is recommended to set Hash after setting Threads.
-
-  * #### Ponder
-    Let Stockfish ponder its next move while the opponent is thinking.
-
-  * #### MultiPV
-    Output the N best lines (principal variations, PVs) when searching.
-    Leave at 1 for best performance.
-
-  * #### Use NNUE
-    Toggle between the NNUE and classical evaluation functions. If set to "true",
-    the network parameters must be available to load from file (see also EvalFile),
-    if they are not embedded in the binary.
-
-  * #### EvalFile
-    The name of the file of the NNUE evaluation parameters. Depending on the GUI the
-    filename might have to include the full path to the folder/directory that contains the file.
-    Other locations, such as the directory that contains the binary and the working directory,
-    are also searched.
-
-  * #### UCI_AnalyseMode
-    An option handled by your GUI.
-
-  * #### UCI_Chess960
-    An option handled by your GUI. If true, Stockfish will play Chess960.
-
-  * #### UCI_ShowWDL
-    If enabled, show approximate WDL statistics as part of the engine output.
-    These WDL numbers model expected game outcomes for a given evaluation and
-    game ply for engine self-play at fishtest LTC conditions (60+0.6s per game).
-
-  * #### UCI_LimitStrength
-    Enable weaker play aiming for an Elo rating as set by UCI_Elo. This option overrides Skill Level.
-
-  * #### UCI_Elo
-    If enabled by UCI_LimitStrength, aim for an engine strength of the given Elo.
-    This Elo rating has been calibrated at a time control of 60s+0.6s and anchored to CCRL 40/4.
-
-  * #### Skill Level
-    Lower the Skill Level in order to make Stockfish play weaker (see also UCI_LimitStrength).
-    Internally, MultiPV is enabled, and with a certain probability depending on the Skill Level a
-    weaker move will be played.
-
-  * #### SyzygyPath
-    Path to the folders/directories storing the Syzygy tablebase files. Multiple
-    directories are to be separated by ";" on Windows and by ":" on Unix-based
-    operating systems. Do not use spaces around the ";" or ":".
-
-    Example: `C:\tablebases\wdl345;C:\tablebases\wdl6;D:\tablebases\dtz345;D:\tablebases\dtz6`
-
-    It is recommended to store .rtbw files on an SSD. There is no loss in storing
-    the .rtbz files on a regular HD. It is recommended to verify all md5 checksums
-    of the downloaded tablebase files (`md5sum -c checksum.md5`) as corruption will
-    lead to engine crashes.
-
-  * #### SyzygyProbeDepth
-    Minimum remaining search depth for which a position is probed. Set this option
-    to a higher value to probe less agressively if you experience too much slowdown
-    (in terms of nps) due to TB probing.
-
-  * #### Syzygy50MoveRule
-    Disable to let fifty-move rule draws detected by Syzygy tablebase probes count
-    as wins or losses. This is useful for ICCF correspondence games.
-
-  * #### SyzygyProbeLimit
-    Limit Syzygy tablebase probing to positions with at most this many pieces left
-    (including kings and pawns).
-
-  * #### Contempt
-    A positive value for contempt favors middle game positions and avoids draws,
-    effective for the classical evaluation only.
-
-  * #### Analysis Contempt
-    By default, contempt is set to prefer the side to move. Set this option to "White"
-    or "Black" to analyse with contempt for that side, or "Off" to disable contempt.
-
-  * #### Move Overhead
-    Assume a time delay of x ms due to network and GUI overheads. This is useful to
-    avoid losses on time in those cases.
-
-  * #### Slow Mover
-    Lower values will make Stockfish take less time in games, higher values will
-    make it think longer.
-
-  * #### nodestime
-    Tells the engine to use nodes searched instead of wall time to account for
-    elapsed time. Useful for engine testing.
-
-  * #### Clear Hash
-    Clear the hash table.
-
-  * #### Debug Log File
-    Write all communication to and from the engine into a text file.
-
-## A note on classical and NNUE evaluation
-
-Both approaches assign a value to a position that is used in alpha-beta (PVS) search
-to find the best move. The classical evaluation computes this value as a function
-of various chess concepts, handcrafted by experts, tested and tuned using fishtest.
-The NNUE evaluation computes this value with a neural network based on basic
-inputs (e.g. piece positions only). The network is optimized and trained
-on the evaluations of millions of positions at moderate search depth.
-
-The NNUE evaluation was first introduced in shogi, and ported to Stockfish afterward.
-It can be evaluated efficiently on CPUs, and exploits the fact that only parts
-of the neural network need to be updated after a typical chess move.
-[The nodchip repository](https://github.com/nodchip/Stockfish) provides additional
-tools to train and develop the NNUE networks.
-
-On CPUs supporting modern vector instructions (avx2 and similar), the NNUE evaluation
-results in stronger playing strength, even if the nodes per second computed by the engine
-is somewhat lower (roughly 60% of nps is typical).
-
-Note that the NNUE evaluation depends on the Stockfish binary and the network parameter
-file (see EvalFile). Not every parameter file is compatible with a given Stockfish binary.
-The default value of the EvalFile UCI option is the name of a network that is guaranteed
-to be compatible with that binary.
-
-## What to expect from Syzygybases?
-
-If the engine is searching a position that is not in the tablebases (e.g.
-a position with 8 pieces), it will access the tablebases during the search.
-If the engine reports a very large score (typically 153.xx), this means
-that it has found a winning line into a tablebase position.
-
-If the engine is given a position to search that is in the tablebases, it
-will use the tablebases at the beginning of the search to preselect all
-good moves, i.e. all moves that preserve the win or preserve the draw while
-taking into account the 50-move rule.
-It will then perform a search only on those moves. **The engine will not move
-immediately**, unless there is only a single good move. **The engine likely
-will not report a mate score even if the position is known to be won.**
-
-It is therefore clear that this behaviour is not identical to what one might
-be used to with Nalimov tablebases. There are technical reasons for this
-difference, the main technical reason being that Nalimov tablebases use the
-DTM metric (distance-to-mate), while Syzygybases use a variation of the
-DTZ metric (distance-to-zero, zero meaning any move that resets the 50-move
-counter). This special metric is one of the reasons that Syzygybases are
-more compact than Nalimov tablebases, while still storing all information
-needed for optimal play and in addition being able to take into account
-the 50-move rule.
-
-## Large Pages
-
-Stockfish supports large pages on Linux and Windows. Large pages make
-the hash access more efficient, improving the engine speed, especially
-on large hash sizes. Typical increases are 5..10% in terms of nodes per
-second, but speed increases up to 30% have been measured. The support is
-automatic. Stockfish attempts to use large pages when available and
-will fall back to regular memory allocation when this is not the case.
-
-### Support on Linux
-
-Large page support on Linux is obtained by the Linux kernel
-transparent huge pages functionality. Typically, transparent huge pages
-are already enabled and no configuration is needed.
-
-### Support on Windows
-
-The use of large pages requires "Lock Pages in Memory" privilege. See
-[Enable the Lock Pages in Memory Option (Windows)](https://docs.microsoft.com/en-us/sql/database-engine/configure-windows/enable-the-lock-pages-in-memory-option-windows)
-on how to enable this privilege, then run [RAMMap](https://docs.microsoft.com/en-us/sysinternals/downloads/rammap)
-to double-check that large pages are used. We suggest that you reboot
-your computer after you have enabled large pages, because long Windows
-sessions suffer from memory fragmentation which may prevent Stockfish
-from getting large pages: a fresh session is better in this regard.
-
-## Compiling Stockfish yourself from the sources
-
-Stockfish has support for 32 or 64-bit CPUs, certain hardware
-instructions, big-endian machines such as Power PC, and other platforms.
-
-On Unix-like systems, it should be easy to compile Stockfish
-directly from the source code with the included Makefile in the folder
-`src`. In general it is recommended to run `make help` to see a list of make
-targets with corresponding descriptions.
-
-```
-    cd src
-    make help
-    make net
-    make build ARCH=x86-64-modern
+make -jN ARCH=... build
 ```
 
-When not using the Makefile to compile (for instance with Microsoft MSVC) you
-need to manually set/unset some switches in the compiler command line; see
-file *types.h* for a quick reference.
-
-When reporting an issue or a bug, please tell us which version and
-compiler you used to create your executable. These informations can
-be found by typing the following commands in a console:
-
+To compile with Profile Guided Optimizations. Requires that the computer that is used for compilation supports the selected `ARCH`.
 ```
-    ./stockfish compiler
+make -jN ARCH=... profile-build
 ```
 
-## Understanding the code base and participating in the project
+`N` is the number of threads to use for compilation.
 
-Stockfish's improvement over the last couple of years has been a great
-community effort. There are a few ways to help contribute to its growth.
+`ARCH` is one of:
+`x86-64-vnni512`, `x86-64-vnni256`, `x86-64-avx512`, `x86-64-bmi2`, `x86-64-avx2`,
+`x86-64-sse41-popcnt`, `x86-64-modern`, `x86-64-ssse3`, `x86-64-sse3-popcnt`,
+`x86-64`, `x86-32-sse41-popcnt`, `x86-32-sse2`, `x86-32`, `ppc-64`, `ppc-32,
+armv7`, `armv7-neon`, `armv8`, `apple-silicon`, `general-64`, `general-32`.
 
-### Donating hardware
+`ARCH` needs to be chosen based based on the instruction set of the CPU that will run stockfish. `x86-64-modern` will produce a binary that works on most common processors, but other options may increase performance for specific hardware.
 
-Improving Stockfish requires a massive amount of testing. You can donate
-your hardware resources by installing the [Fishtest Worker](https://github.com/glinscott/fishtest/wiki/Running-the-worker:-overview)
-and view the current tests on [Fishtest](https://tests.stockfishchess.org/tests).
+Additional options:
 
-### Improving the code
+- `blas=[yes/no]` - whether to use an external BLAS library. Default is `no`. Using an external BLAS library may have a significantly improve learning performance and by default expects openBLAS to be installed.
 
-If you want to help improve the code, there are several valuable resources:
+## Training Guide
 
-* [In this wiki,](https://www.chessprogramming.org) many techniques used in
-Stockfish are explained with a lot of background information.
+### Generating Training Data
 
-* [The section on Stockfish](https://www.chessprogramming.org/Stockfish)
-describes many features and techniques used by Stockfish. However, it is
-generic rather than being focused on Stockfish's precise implementation.
-Nevertheless, a helpful resource.
+To generate training data from the classic eval, use the gensfen command with the setting "Use NNUE" set to "false". The given example is generation in its simplest form. There are more commands.
 
-* The latest source can always be found on [GitHub](https://github.com/official-stockfish/Stockfish).
-Discussions about Stockfish take place in the [FishCooking](https://groups.google.com/forum/#!forum/fishcooking)
-group and engine testing is done on [Fishtest](https://tests.stockfishchess.org/tests).
-If you want to help improve Stockfish, please read this [guideline](https://github.com/glinscott/fishtest/wiki/Creating-my-first-test)
-first, where the basics of Stockfish development are explained.
+```
+uci
+setoption name PruneAtShallowDepth value false
+setoption name Use NNUE value false
+setoption name Threads value x
+setoption name Hash value y
+setoption name SyzygyPath value path
+isready
+gensfen depth a loop b use_draw_in_training_data_generation 1 eval_limit 32000
+```
 
+- `depth` is the searched depth per move, or how far the engine looks forward. This value is an integer.
+- `loop` is the amount of positions generated. This value is also an integer.
 
-## Terms of use
+Specify how many threads and how much memory you would like to use with the `x` and `y` values. The option SyzygyPath is not necessary, but if you would like to use it, you must first have Syzygy endgame tablebases on your computer, which you can find [here](http://oics.olympuschess.com/tracker/index.php). You will need to have a torrent client to download these tablebases, as that is probably the fastest way to obtain them. The `path` is the path to the folder containing those tablebases. It does not have to be surrounded in quotes.
 
-Stockfish is free, and distributed under the **GNU General Public License version 3**
-(GPL v3). Essentially, this means that you are free to do almost exactly
-what you want with the program, including distributing it among your
-friends, making it available for download from your web site, selling
-it (either by itself or as part of some bigger software package), or
-using it as the starting point for a software project of your own.
+This will create a file named "generated_kifu.binpack" in the same folder as the binary containing the generated training data. Once generation is done, you can rename the file to something like "1billiondepth12.binpack" to remember the depth and quantity of the positions and move it to a folder named "trainingdata" in the same directory as the binaries.
 
-The only real limitation is that whenever you distribute Stockfish in
-some way, you must always include the full source code, or a pointer
-to where the source code can be found. If you make any changes to the
-source code, these changes must also be made available under the GPL.
+You will also need validation data that is used for loss calculation and accuracy computation. Validation data is generated in the same way as training data, but generally at most 1 million positions should be used as there's no need for more and it would just slow the learning process down. It may also be better to slightly increase the depth for validation data. After generation you can rename the validation data file to "val.binpack" and drop it in a folder named "validationdata" in the same directory to make it easier.
 
-For full details, read the copy of the GPL v3 found in the file named
-*Copying.txt*.
+More information about gensfen and available options can be found in the [docs](docs/gensfen.md)
+
+### Training a network
+
+#### Training a Completely New Network
+
+Whether a new network is created or not is controlled by the UCI option `SkipLoadingEval`. If set to true then a new network will be created, which allows learning from scratch. If left at its default (false) then a network will be loaded and trained further. The second scenario is described in the reinforcement learning paragraph.
+
+A simple command chain to start with training could look like this:
+
+```
+uci
+setoption name EnableTranspositionTable value false
+setoption name PruneAtShallowDepth value false
+setoption name SkipLoadingEval value true
+setoption name Use NNUE value pure
+setoption name Threads value x
+isready
+learn targetdir trainingdata loop 100 batchsize 1000000 use_draw_in_training 1 use_draw_in_validation 1 lr 1 lambda 1 eval_limit 32000 nn_batch_size 1000 newbob_decay 0.5 eval_save_interval 250000000 loss_output_interval 1000000 validation_set_file_name validationdata\val.binpack
+```
+
+This will utilize training data files in the "trainingdata" directory and validation data from file "validationdata\val.bin". Produced nets are saved in the "evalsave" folder.
+
+More information about learn and available parameters can be found in the [docs](docs/learn.md)
+
+#### Reinforcement Learning
+
+If you would like to do some reinforcement learning on your original network, you must first generate training data with the setting `Use NNUE` set to `pure` and using the previous network (either name it "nn.bin" and put into alongside the binary or provide the `EvalFile` UCI option). Use the commands specified above. You should aim to generate less positions than the first run, around 1/10 of the number of positions generated in the first run. The depth should be higher as well. You should also do the same for validation data, with the depth being higher than the last run.
+
+After you have generated the training data, you must move it into your training data folder and move the older data so that the binary does not train on the same data again. Do the same for the validation data. Make sure the "evalsave" folder is empty. Then, using the same binary, type in the training commands shown above. Do __NOT__ set `SkipLoadingEval` to true, it must be false or you will get a completely new network, instead of a network trained with reinforcement learning. You should also set `eval_save_interval` to a number that is lower than the amount of positions in your training data, perhaps also 1/10 of the original value.
+
+After training is finished, your new net should be located in the "final" folder under the "evalsave" directory. You should test this new network against the older network to see if there are any improvements. Don't rely on the automatic rejection for network quality, sometimes even rejected nets can be better than the previous ones.
+
+## Using Your Trained Net
+
+If you want to use your generated net, copy the net located in the "final" folder under the "evalsave" directory and move it into a new folder named "eval" under the directory with the binaries. You can then use the halfkp_256x2 binaries pertaining to your CPU with a standard chess GUI, such as Cutechess. Refer to the [releases page](https://abrok.eu/stockfish) to find out which binary is best for your CPU.
+
+If the engine does not load any net file, or shows "Error! *** not found or wrong format", please try to specify the net with the full file path with the `EvalFile` UCI option by typing the command `setoption name EvalFile value path` where path is the full file path. The `Use NNUE` UCI option must be set either to `true` or `pure` with the command `setoption name Use NNUE value true/pure`.
+
+## Training data formats.
+
+Currently there are 3 training data formats. Two of them are supported directly.
+
+- `.bin` - the original training data format. Uses 40 bytes per entry. Is supported directly by the `gensfen` and `learn` commands.
+- `.plain` - a human readable training data format. This one is not supported directly by the `gensfen` and `learn` commands. It should not be used for data exchange because it's less compact than other formats. It is mostly useful for inspection of the data.
+- `.binpack` - a compact binary training data format that exploits positions chains to further reduce size. It uses on average between 2 to 3 bytes per entry when generating data with `gensfen`. It is supported directly by `gensfen` and `learn` commands. It is currently the default for the `gensfen` command. A more in depth description can be found [here](docs/binpack.md)
+
+### Conversion between formats.
+
+There is a builting converted that support all 3 formats described above. Any of them can be converted to any other. For more information and usage guide see [here](docs/convert.md).
+
+## Resources
+
+- [Stockfish NNUE Wiki](https://www.qhapaq.org/shogi/shogiwiki/stockfish-nnue/)
+- [Training instructions](https://twitter.com/mktakizawa/status/1273042640280252416) from the creator of the Elmo shogi engine
+- [Original Talkchess thread](http://talkchess.com/forum3/viewtopic.php?t=74059) discussing Stockfish NNUE
+- [Guide to Stockfish NNUE](http://yaneuraou.yaneu.com/2020/06/19/stockfish-nnue-the-complete-guide/)
+- [Unofficial Stockfish Discord](https://discord.gg/nv8gDtt)
+
+A more updated list can be found in the #sf-nnue-resources channel in the Discord.

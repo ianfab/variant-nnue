@@ -27,6 +27,8 @@
 #include <streambuf>
 #include <vector>
 
+#include "nnue/evaluate_nnue.h"
+
 #include "bitboard.h"
 #include "evaluate.h"
 #include "material.h"
@@ -36,116 +38,7 @@
 #include "uci.h"
 #include "incbin/incbin.h"
 
-
-// Macro to embed the default NNUE file data in the engine binary (using incbin.h, by Dale Weiler).
-// This macro invocation will declare the following three variables
-//     const unsigned char        gEmbeddedNNUEData[];  // a pointer to the embedded data
-//     const unsigned char *const gEmbeddedNNUEEnd;     // a marker to the end
-//     const unsigned int         gEmbeddedNNUESize;    // the size of the embedded file
-// Note that this does not work in Microsof Visual Studio.
-#if !defined(_MSC_VER) && !defined(NNUE_EMBEDDING_OFF)
-  INCBIN(EmbeddedNNUE, EvalFileDefaultName);
-#else
-  const unsigned char        gEmbeddedNNUEData[1] = {0x0};
-  [[maybe_unused]]
-  const unsigned char *const gEmbeddedNNUEEnd = &gEmbeddedNNUEData[1];
-  const unsigned int         gEmbeddedNNUESize = 1;
-#endif
-
-
 using namespace std;
-using namespace Eval::NNUE;
-
-namespace Eval {
-
-  bool useNNUE;
-  string eval_file_loaded = "None";
-
-  /// NNUE::init() tries to load a nnue network at startup time, or when the engine
-  /// receives a UCI command "setoption name EvalFile value nn-[a-z0-9]{12}.nnue"
-  /// The name of the nnue network is always retrieved from the EvalFile option.
-  /// We search the given network in three locations: internally (the default
-  /// network may be embedded in the binary), in the active working directory and
-  /// in the engine directory. Distro packagers may define the DEFAULT_NNUE_DIRECTORY
-  /// variable to have the engine search in a special directory in their distro.
-
-  void NNUE::init() {
-
-    string eval_file = string(Options["EvalFile"]);
-
-    useNNUE = Options["Use NNUE"]
-             && (   eval_file.find(string(Options["UCI_Variant"])) != string::npos
-                 || (Options["UCI_Variant"] == "chess" && eval_file.rfind("nn-", 0) != string::npos)) // restrict NNUE usage to corresponding variant
-             && RANK_MAX == RANK_8; // TODO: fix for large boards
-    if (!useNNUE)
-        return;
-
-    #if defined(DEFAULT_NNUE_DIRECTORY)
-    #define stringify2(x) #x
-    #define stringify(x) stringify2(x)
-    vector<string> dirs = { "<internal>" , "" , CommandLine::binaryDirectory , stringify(DEFAULT_NNUE_DIRECTORY) };
-    #else
-    vector<string> dirs = { "<internal>" , "" , CommandLine::binaryDirectory };
-    #endif
-
-    for (string directory : dirs)
-        if (eval_file_loaded != eval_file)
-        {
-            if (directory != "<internal>")
-            {
-                ifstream stream(directory + eval_file, ios::binary);
-                if (load_eval(eval_file, stream))
-                    eval_file_loaded = eval_file;
-            }
-
-            if (directory == "<internal>" && eval_file == EvalFileDefaultName)
-            {
-                // C++ way to prepare a buffer for a memory stream
-                class MemoryBuffer : public basic_streambuf<char> {
-                    public: MemoryBuffer(char* p, size_t n) { setg(p, p, p + n); setp(p, p + n); }
-                };
-
-                MemoryBuffer buffer(const_cast<char*>(reinterpret_cast<const char*>(gEmbeddedNNUEData)),
-                                    size_t(gEmbeddedNNUESize));
-
-                istream stream(&buffer);
-                if (load_eval(eval_file, stream))
-                    eval_file_loaded = eval_file;
-            }
-        }
-  }
-
-  /// NNUE::verify() verifies that the last net used was loaded successfully
-  void NNUE::verify() {
-
-    string eval_file = string(Options["EvalFile"]);
-
-    if (useNNUE && eval_file_loaded != eval_file)
-    {
-        UCI::OptionsMap defaults;
-        UCI::init(defaults);
-
-        string msg1 = "If the UCI option \"Use NNUE\" is set to true, network evaluation parameters compatible with the engine must be available.";
-        string msg2 = "The option is set to true, but the network file " + eval_file + " was not loaded successfully.";
-        string msg3 = "The UCI option EvalFile might need to specify the full path, including the directory name, to the network file.";
-        string msg4 = "The default net can be downloaded from: https://tests.stockfishchess.org/api/nn/" + string(defaults["EvalFile"]);
-        string msg5 = "The engine will be terminated now.";
-
-        sync_cout << "info string ERROR: " << msg1 << sync_endl;
-        sync_cout << "info string ERROR: " << msg2 << sync_endl;
-        sync_cout << "info string ERROR: " << msg3 << sync_endl;
-        sync_cout << "info string ERROR: " << msg4 << sync_endl;
-        sync_cout << "info string ERROR: " << msg5 << sync_endl;
-
-        exit(EXIT_FAILURE);
-    }
-
-    if (useNNUE)
-        sync_cout << "info string NNUE evaluation using " << eval_file << " enabled" << sync_endl;
-    else
-        sync_cout << "info string classical evaluation enabled" << sync_endl;
-  }
-}
 
 namespace Trace {
 
@@ -1414,7 +1307,15 @@ Value Eval::evaluate(const Position& pos) {
 
   Value v;
 
-  if (!Eval::useNNUE)
+  if (NNUE::useNNUE == NNUE::UseNNUEMode::Pure) {
+      v = NNUE::evaluate(pos);
+
+      // Guarantee evaluation does not hit the tablebase range
+      v = std::clamp(v, VALUE_TB_LOSS_IN_MAX_PLY + 1, VALUE_TB_WIN_IN_MAX_PLY - 1);
+
+      return v;
+  }
+  else if (NNUE::useNNUE == NNUE::UseNNUEMode::False)
       v = Evaluation<NO_TRACE>(pos).value();
   else
   {
@@ -1503,7 +1404,7 @@ std::string Eval::trace(const Position& pos) {
 
   ss << "\nClassical evaluation: " << to_cp(v) << " (white side)\n";
 
-  if (Eval::useNNUE)
+  if (NNUE::useNNUE != NNUE::UseNNUEMode::False)
   {
       v = NNUE::evaluate(pos);
       v = pos.side_to_move() == WHITE ? v : -v;

@@ -22,20 +22,40 @@
 #include <sstream>
 #include <string>
 
+#include "nnue/evaluate_nnue.h"
 #include "evaluate.h"
 #include "movegen.h"
+#include "nnue/nnue_test_command.h"
 #include "position.h"
 #include "search.h"
+#include "syzygy/tbprobe.h"
 #include "thread.h"
 #include "timeman.h"
 #include "tt.h"
 #include "uci.h"
 #include "xboard.h"
-#include "syzygy/tbprobe.h"
+
+#include "learn/gensfen.h"
+#include "learn/learn.h"
+#include "learn/convert.h"
 
 using namespace std;
 
 extern vector<string> setup_bench(const Position&, istream&);
+
+// FEN string of the initial position, normal chess
+const char* StartFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+void test_cmd(Position& pos, istringstream& is)
+{
+    // Initialize as it may be searched.
+    Eval::NNUE::init();
+
+    std::string param;
+    is >> param;
+
+    if (param == "nnue") Eval::NNUE::test_command(pos, is);
+}
 
 namespace {
 
@@ -84,7 +104,7 @@ namespace {
     Position p;
     p.set(pos.variant(), pos.fen(), Options["UCI_Chess960"], &states->back(), Threads.main());
 
-    Eval::NNUE::verify();
+    Eval::NNUE::verify_eval_file_loaded();
 
     sync_cout << "\n" << Eval::trace(p) << sync_endl;
   }
@@ -93,7 +113,7 @@ namespace {
   // setoption() is called when engine receives the "setoption" UCI command. The
   // function updates the UCI option ("name") to the given value ("value").
 
-  void setoption(istringstream& is) {
+  void setoption_from_stream(istringstream& is) {
 
     string token, name, value;
 
@@ -110,12 +130,7 @@ namespace {
     while (is >> token)
         value += (value.empty() ? "" : " ") + token;
 
-    if (Options.count(name))
-        Options[name] = value;
-    else if (Options["Protocol"] == "ucci" && (std::replace(name.begin(), name.end(), '_', ' '), Options.count(name)))
-        Options[name] = value;
-    else
-        sync_cout << "No such option: " << name << sync_endl;
+    UCI::setoption(name, value);
   }
 
 
@@ -199,7 +214,7 @@ namespace {
             else
                trace_eval(pos);
         }
-        else if (token == "setoption")  setoption(is);
+        else if (token == "setoption")  setoption_from_stream(is);
         else if (token == "position")   position(pos, is, states);
         else if (token == "ucinewgame") { Search::clear(); elapsed = now(); } // Search::clear() may take some while
     }
@@ -214,27 +229,46 @@ namespace {
          << "\nNodes/second    : " << 1000 * nodes / elapsed << endl;
   }
 
-  // The win rate model returns the probability (per mille) of winning given an eval
-  // and a game-ply. The model fits rather accurately the LTC fishtest statistics.
-  int win_rate_model(Value v, int ply) {
+} // namespace
 
-     // The model captures only up to 240 plies, so limit input (and rescale)
-     double m = std::min(240, ply) / 64.0;
+void UCI::setoption(const std::string& name, const std::string& value)
+{
+    if (Options.count(name))
+        Options[name] = value;
+    //else if (Options["Protocol"] == "ucci" && (std::replace(name.begin(), name.end(), '_', ' '), Options.count(name)))
+    //    Options[name] = value;
+    else
+        sync_cout << "No such option: " << name << sync_endl;
+}
 
-     // Coefficients of a 3rd order polynomial fit based on fishtest data
-     // for two parameters needed to transform eval to the argument of a
-     // logistic function.
-     double as[] = {-8.24404295, 64.23892342, -95.73056462, 153.86478679};
-     double bs[] = {-3.37154371, 28.44489198, -56.67657741,  72.05858751};
-     double a = (((as[0] * m + as[1]) * m + as[2]) * m) + as[3];
-     double b = (((bs[0] * m + bs[1]) * m + bs[2]) * m) + bs[3];
+// The win rate model returns the probability (per mille) of winning given an eval
+// and a game-ply. The model fits rather accurately the LTC fishtest statistics.
+int UCI::win_rate_model(Value v, int ply) {
+   // Return win rate in per mille (rounded to nearest)
+   return int(0.5 + win_rate_model_double(v, ply));
+}
 
-     // Transform eval to centipawns with limited range
+// The win rate model returns the probability (per mille) of winning given an eval
+// and a game-ply. The model fits rather accurately the LTC fishtest statistics.
+double UCI::win_rate_model_double(double v, int ply) {
+
+   // The model captures only up to 240 plies, so limit input (and rescale)
+   double m = std::min(240, ply) / 64.0;
+
+   // Coefficients of a 3rd order polynomial fit based on fishtest data
+   // for two parameters needed to transform eval to the argument of a
+   // logistic function.
+   double as[] = {-8.24404295, 64.23892342, -95.73056462, 153.86478679};
+   double bs[] = {-3.37154371, 28.44489198, -56.67657741,  72.05858751};
+   double a = (((as[0] * m + as[1]) * m + as[2]) * m) + as[3];
+   double b = (((bs[0] * m + bs[1]) * m + bs[2]) * m) + bs[3];
+
+   // Transform eval to centipawns with limited range
      double x = std::clamp(double(100 * v) / PawnValueEg, -1000.0, 1000.0);
 
-     // Return win rate in per mille (rounded to nearest)
-     return int(0.5 + 1000 / (1 + std::exp((a - x) / b)));
-  }
+   // Return win rate in per mille
+   return 1000.0 / (1 + std::exp((a - x) / b));
+}
 
   // load() is called when engine receives the "load" command.
   // The function reads variant configuration files.
@@ -256,8 +290,41 @@ namespace {
         variants.parse<true>(token);
   }
 
-} // namespace
 
+// --------------------
+// Call qsearch(),search() directly for testing
+// --------------------
+
+void qsearch_cmd(Position& pos)
+{
+  cout << "qsearch : ";
+  auto pv = Search::qsearch(pos);
+  cout << "Value = " << pv.first << " , " << UCI::value(pv.first) << " , PV = ";
+  for (auto m : pv.second)
+    cout << UCI::move(pos, m) << " ";
+  cout << endl;
+}
+
+void search_cmd(Position& pos, istringstream& is)
+{
+  string token;
+  int depth = 1;
+  int multi_pv = (int)Options["MultiPV"];
+  while (is >> token)
+  {
+    if (token == "depth")
+      is >> depth;
+    if (token == "multipv")
+      is >> multi_pv;
+  }
+
+  cout << "search depth = " << depth << " , multi_pv = " << multi_pv << " : ";
+  auto pv = Search::search(pos, depth, multi_pv);
+  cout << "Value = " << pv.first << " , " << UCI::value(pv.first) << " , PV = ";
+  for (auto m : pv.second)
+    cout << UCI::move(pos, m) << " ";
+  cout << endl;
+}
 
 /// UCI::loop() waits for a command from stdin, parses it and calls the appropriate
 /// function. Also intercepts EOF from stdin to ensure gracefully exiting if the
@@ -318,7 +385,7 @@ void UCI::loop(int argc, char* argv[]) {
       else if (Options["Protocol"] == "xboard")
           xboardStateMachine.process_command(pos, token, is, states);
 
-      else if (token == "setoption")  setoption(is);
+      else if (token == "setoption")  setoption_from_stream(is);
       // UCCI-specific banmoves command
       else if (token == "banmoves")
           while (is >> token)
@@ -337,6 +404,23 @@ void UCI::loop(int argc, char* argv[]) {
       else if (token == "compiler") sync_cout << compiler_info() << sync_endl;
       else if (token == "load")     { load(is); argc = 1; } // continue reading stdin
       else if (token == "check")    check(is);
+
+      else if (token == "gensfen") Learner::gen_sfen(pos, is);
+      else if (token == "learn") Learner::learn(pos, is);
+      else if (token == "convert") Learner::convert(is);
+
+      // Command to call qsearch(),search() directly for testing
+      else if (token == "qsearch") qsearch_cmd(pos);
+      else if (token == "search") search_cmd(pos, is);
+      else if (token == "tasktest")
+      {
+        Threads.execute_with_workers([](auto& th) {
+          std::cout << th.thread_idx() << '\n';
+        });
+      }
+
+      // test command
+      else if (token == "test") test_cmd(pos, is);
       else
           sync_cout << "Unknown command: " << cmd << sync_endl;
 

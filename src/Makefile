@@ -28,29 +28,44 @@ else
 EXE = stockfish
 endif
 
-### Installation dir definitions
-PREFIX = /usr/local
-BINDIR = $(PREFIX)/bin
-
-### Built-in benchmark for pgo-builds
-PGOBENCH = ./$(EXE) bench
-
-### Source and object files
-SRCS = benchmark.cpp bitbase.cpp bitboard.cpp endgame.cpp evaluate.cpp main.cpp \
-	material.cpp misc.cpp movegen.cpp movepick.cpp pawns.cpp position.cpp psqt.cpp \
-	search.cpp thread.cpp timeman.cpp tt.cpp uci.cpp ucioption.cpp tune.cpp syzygy/tbprobe.cpp \
-	nnue/evaluate_nnue.cpp nnue/features/half_kp.cpp \
-	partner.cpp parser.cpp piece.cpp variant.cpp xboard.cpp
-
-OBJS = $(notdir $(SRCS:.cpp=.o))
-
-VPATH = syzygy:nnue:nnue/features
-
 ### Establish the operating system name
 KERNEL = $(shell uname -s)
 ifeq ($(KERNEL),Linux)
 	OS = $(shell uname -o)
 endif
+
+### Installation dir definitions
+PREFIX = /usr/local
+BINDIR = $(PREFIX)/bin
+
+### Built-in benchmark for pgo-builds
+PGO_TRAINING_DATA_FILE = pgo_training_data.bin
+PGOBENCH = ./$(EXE) bench
+PGOGENSFEN = ./$(EXE) gensfen depth 3 loop 1000 output_file_name $(PGO_TRAINING_DATA_FILE)
+
+### Source and object files
+SRCS = benchmark.cpp bitbase.cpp bitboard.cpp endgame.cpp evaluate.cpp main.cpp \
+	material.cpp misc.cpp movegen.cpp movepick.cpp pawns.cpp position.cpp psqt.cpp \
+	search.cpp thread.cpp timeman.cpp tt.cpp uci.cpp ucioption.cpp tune.cpp syzygy/tbprobe.cpp \
+	partner.cpp parser.cpp piece.cpp variant.cpp xboard.cpp \
+	nnue/evaluate_nnue.cpp \
+	nnue/evaluate_nnue_learner.cpp \
+	nnue/features/half_kp.cpp \
+	nnue/features/half_relative_kp.cpp \
+	nnue/features/k.cpp \
+	nnue/features/p.cpp \
+	nnue/features/castling_right.cpp \
+	nnue/features/enpassant.cpp \
+	nnue/nnue_test_command.cpp \
+	learn/sfen_packer.cpp \
+	learn/learn.cpp \
+	learn/gensfen.cpp \
+	learn/convert.cpp \
+	learn/multi_think.cpp
+
+OBJS = $(notdir $(SRCS:.cpp=.o))
+
+VPATH = syzygy:nnue:nnue/features:eval:extra:learn
 
 ### ==========================================================================
 ### Section 2. High-level Configuration
@@ -106,6 +121,7 @@ else
    SUPPORTED_ARCH=false
 endif
 
+blas = no
 optimize = yes
 debug = no
 sanitize = no
@@ -306,9 +322,9 @@ endif
 ### ==========================================================================
 
 ### 3.1 Selecting compiler (default = gcc)
-CXXFLAGS += -Wall -Wcast-qual -fno-exceptions -std=c++17 $(EXTRACXXFLAGS)
-DEPENDFLAGS += -std=c++17
-LDFLAGS += $(EXTRALDFLAGS)
+CXXFLAGS += -g -Wall -Wcast-qual -fno-exceptions -std=c++17 -fopenmp -I. $(EXTRACXXFLAGS)
+LDFLAGS += -fopenmp $(EXTRALDFLAGS)
+DEPENDFLAGS += -std=c++17 -I.
 
 # Compile version with support for large board variants
 # Use precomputed magics by default if pext is not available
@@ -478,20 +494,39 @@ ifneq ($(comp),mingw)
 		# Haiku has pthreads in its libroot, so only link it in on other platforms
 		ifneq ($(KERNEL),Haiku)
 			ifneq ($(COMP),ndk)
-				LDFLAGS += -lpthread
-			endif
+			LDFLAGS += -lpthread
 		endif
 	endif
 endif
+endif
 
-### 3.2.1 Debugging
+### 3.2.1. BLAS libraries
+ifeq ($(blas), yes)
+	LDFLAGS += -lopenblas
+
+	ifeq ($(KERNEL),Linux)
+		LDFLAGS +=
+	else
+		CXXFLAGS += -I/mingw64/include/OpenBLAS
+
+		ifeq ($(debug),yes)
+			LDFLAGS += -Wl,-static
+		else
+			LDFLAGS += -Wl,-s -static
+		endif
+	endif
+
+	CXXFLAGS += -DUSE_BLAS
+endif
+
+### 3.2.2 Debugging
 ifeq ($(debug),no)
 	CXXFLAGS += -DNDEBUG
 else
 	CXXFLAGS += -g
 endif
 
-### 3.2.2 Debugging with undefined behavior sanitizers
+### 3.2.3 Debugging with undefined behavior sanitizers
 ifneq ($(sanitize),no)
         CXXFLAGS += -g3 -fsanitize=$(sanitize)
         LDFLAGS += -fsanitize=$(sanitize)
@@ -605,7 +640,7 @@ ifeq ($(neon),yes)
 		CXXFLAGS += -mfpu=neon
 	endif
 	endif
-	endif
+endif
 endif
 
 ### 3.7 pext
@@ -769,6 +804,7 @@ profile-build: net config-sanity objclean profileclean
 	@echo ""
 	@echo "Step 2/4. Running benchmark for pgo-build ..."
 	$(PGOBENCH) > /dev/null
+	$(PGOGENSFEN) > /dev/null
 	@echo ""
 	@echo "Step 3/4. Building optimized executable ..."
 	$(MAKE) ARCH=$(ARCH) COMP=$(COMP) objclean
@@ -815,13 +851,14 @@ net:
 
 # clean binaries and objects
 objclean:
-	@rm -f $(EXE) *.o ./syzygy/*.o ./nnue/*.o ./nnue/features/*.o
+	@rm -f $(EXE) *.o ./syzygy/*.o ./nnue/*.o ./nnue/features/*.o ./learn/*.o ./extra/*.o ./eval/*.o
 
 # clean auxiliary profiling files
 profileclean:
 	@rm -rf profdir
-	@rm -f bench.txt *.gcda *.gcno ./syzygy/*.gcda ./nnue/*.gcda ./nnue/features/*.gcda *.s
+	@rm -f bench.txt *.gcda *.gcno ./syzygy/*.gcda ./nnue/*.gcda ./nnue/features/*.gcda *.s ./learn/*.gcda ./extra/*.gcda ./eval/*.gcda
 	@rm -f stockfish.profdata *.profraw
+	@rm -f $(PGO_TRAINING_DATA_FILE)
 
 default:
 	help
@@ -927,6 +964,6 @@ icc-profile-use:
 	all
 
 .depend:
-	-@$(CXX) $(DEPENDFLAGS) -MM $(SRCS) > $@ 2> /dev/null
+	-@$(CXX) $(DEPENDFLAGS) -MM $(SRCS) > $@
 
 -include .depend

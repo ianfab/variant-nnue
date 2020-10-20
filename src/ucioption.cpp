@@ -22,6 +22,7 @@
 #include <sstream>
 #include <iostream>
 
+#include "nnue/evaluate_nnue.h"
 #include "evaluate.h"
 #include "misc.h"
 #include "piece.h"
@@ -58,6 +59,12 @@ void on_tb_path(const Option& o) { Tablebases::init(o); }
 
 void on_use_NNUE(const Option& ) { Eval::NNUE::init(); }
 void on_eval_file(const Option& ) { Eval::NNUE::init(); }
+void on_prune_at_shallow_depth(const Option& o) {
+    Search::prune_at_shallow_depth = o;
+}
+void on_enable_transposition_table(const Option& o) {
+    TranspositionTable::enable_transposition_table = o;
+}
 
 void on_variant_path(const Option& o) { variants.parse<false>(o); Options["UCI_Variant"].set_combo(variants.get_keys()); }
 void on_variant_change(const Option &o) {
@@ -168,11 +175,25 @@ void init(OptionsMap& o) {
   o["Syzygy50MoveRule"]      << Option(true);
   o["SyzygyProbeLimit"]      << Option(7, 0, 7);
 #ifdef USE_NNUE
-  o["Use NNUE"]              << Option(true, on_use_NNUE);
+  o["Use NNUE"]              << Option("true", {"false", "true", "pure"}, on_use_NNUE);
 #else
-  o["Use NNUE"]              << Option(false, on_use_NNUE);
+  o["Use NNUE"]              << Option("false", {"false", "true", "pure"}, on_use_NNUE);
 #endif
   o["EvalFile"]              << Option(EvalFileDefaultName, on_eval_file);
+  // When the evaluation function is loaded at the ucinewgame timing, it is necessary to convert the new evaluation function.
+  // I want to hit the test eval convert command, but there is no new evaluation function
+  // It ends abnormally before executing this command.
+  // Therefore, with this hidden option, you can suppress the loading of the evaluation function when ucinewgame,
+  // Hit the test eval convert command.
+  o["SkipLoadingEval"]       << Option(false);
+  // When learning the evaluation function, you can change the folder to save the evaluation function.
+  // Evalsave by default. This folder shall be prepared in advance.
+  // Automatically create a folder under this folder like "0/", "1/", ... and save the evaluation function file there.
+  o["EvalSaveDir"] << Option("evalsave");
+  // Prune at shallow depth on PV nodes. False is recommended when using fixed depth search.
+  o["PruneAtShallowDepth"] << Option(true, on_prune_at_shallow_depth);
+  // Enable transposition table.
+  o["EnableTranspositionTable"] << Option(true, on_enable_transposition_table);
   o["TsumeMode"]             << Option(false);
   o["VariantPath"]           << Option("<empty>", on_variant_path);
 }
@@ -271,7 +292,7 @@ Option::operator double() const {
 }
 
 Option::operator std::string() const {
-  assert(type == "string" || type == "combo");
+  assert(type == "check" || type == "spin" || type == "combo" || type == "button" || type == "string");
   return currentValue;
 }
 

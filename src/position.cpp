@@ -23,6 +23,8 @@
 #include <iomanip>
 #include <sstream>
 
+#include "nnue/evaluate_nnue.h"
+
 #include "bitboard.h"
 #include "misc.h"
 #include "movegen.h"
@@ -31,6 +33,9 @@
 #include "tt.h"
 #include "uci.h"
 #include "syzygy/tbprobe.h"
+
+#include "learn/packed_sfen.h"
+#include "learn/sfen_packer.h"
 
 using std::string;
 
@@ -1270,7 +1275,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
       else
           st->nonPawnMaterial[them] -= PieceValue[MG][captured];
 
-      if (Eval::useNNUE)
+      if (Eval::NNUE::useNNUE != Eval::NNUE::UseNNUEMode::False)
       {
           dp.dirty_num = 2;  // 1 piece moved, 1 piece captured
           dp.piece[1] = captured;
@@ -1372,7 +1377,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
   // Move the piece. The tricky Chess960 castling is handled earlier
   if (type_of(m) == DROP)
   {
-      if (Eval::useNNUE)
+      if (Eval::NNUE::useNNUE != Eval::NNUE::UseNNUEMode::False)
       {
           // Add drop piece
           dp.piece[dp.dirty_num] = pc;
@@ -1406,7 +1411,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
   }
   else if (type_of(m) != CASTLING)
   {
-      if (Eval::useNNUE)
+      if (Eval::NNUE::useNNUE != Eval::NNUE::UseNNUEMode::False)
       {
           dp.piece[0] = pc;
           dp.from[0] = from;
@@ -1438,7 +1443,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
           remove_piece(to);
           put_piece(promotion, to, true, type_of(m) == PIECE_PROMOTION ? pc : NO_PIECE);
 
-          if (Eval::useNNUE)
+          if (Eval::NNUE::useNNUE != Eval::NNUE::UseNNUEMode::False)
           {
               // Promoting pawn to SQ_NONE, promoted piece from SQ_NONE
               dp.to[0] = SQ_NONE;
@@ -1471,7 +1476,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
       remove_piece(to);
       put_piece(promotion, to, true, pc);
 
-      if (Eval::useNNUE)
+      if (Eval::NNUE::useNNUE != Eval::NNUE::UseNNUEMode::False)
       {
           // Promoting piece to SQ_NONE, promoted piece from SQ_NONE
           dp.to[0] = SQ_NONE;
@@ -1496,7 +1501,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
       remove_piece(to);
       put_piece(demotion, to);
 
-      if (Eval::useNNUE)
+      if (Eval::NNUE::useNNUE != Eval::NNUE::UseNNUEMode::False)
       {
           // Demoting piece to SQ_NONE, demoted piece from SQ_NONE
           dp.to[0] = SQ_NONE;
@@ -1527,7 +1532,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
       put_piece(gating_piece, gate);
       remove_from_hand(gating_piece);
 
-      if (Eval::useNNUE)
+      if (Eval::NNUE::useNNUE != Eval::NNUE::UseNNUEMode::False)
       {
           // Add gating piece
           dp.piece[dp.dirty_num] = gating_piece;
@@ -1719,7 +1724,7 @@ void Position::do_castling(Color us, Square from, Square& to, Square& rfrom, Squ
   Piece castlingKingPiece = piece_on(Do ? from : to);
   Piece castlingRookPiece = piece_on(Do ? rfrom : rto);
 
-  if (Do && Eval::useNNUE)
+  if (Do && Eval::NNUE::useNNUE != Eval::NNUE::UseNNUEMode::False)
   {
       auto& dp = st->dirtyPiece;
       dp.piece[0] = castlingKingPiece;
@@ -1748,15 +1753,15 @@ void Position::do_null_move(StateInfo& newSt) {
   assert(!checkers());
   assert(&newSt != st);
 
-  if (Eval::useNNUE)
-  {
-      std::memcpy(&newSt, st, sizeof(StateInfo));
-  }
-  else
-      std::memcpy(&newSt, st, offsetof(StateInfo, accumulator));
+  std::memcpy(&newSt, st, offsetof(StateInfo, accumulator));
 
   newSt.previous = st;
   st = &newSt;
+
+  // Used by NNUE
+  st->accumulator.computed_accumulation = false;
+  auto& dp = st->dirtyPiece;
+  dp.dirty_num = 0;
 
   if (st->epSquare != SQ_NONE)
   {
@@ -2336,4 +2341,36 @@ bool Position::pos_is_ok() const {
       }
 
   return true;
+}
+
+// Add a function that directly unpacks for speed. It's pretty tough.
+// Write it by combining packer::unpack() and Position::set().
+// If there is a problem with the passed phase and there is an error, non-zero is returned.
+int Position::set_from_packed_sfen(const Learner::PackedSfen& sfen , StateInfo* si, Thread* th)
+{
+  return Learner::set_from_packed_sfen(*this, sfen, si, th);
+}
+
+// Give the board, hand piece, and turn, and return the sfen.
+//std::string Position::sfen_from_rawdata(Piece board[81], Hand hands[2], Color turn, int gamePly_)
+//{
+// // Copy it to an internal structure and call sfen() if the conversion process depends only on it
+// // Maybe it will be converted normally...
+//  Position pos;
+//
+//  memcpy(pos.board, board, sizeof(Piece) * 81);
+//  memcpy(pos.hand, hands, sizeof(Hand) * 2);
+//  pos.sideToMove = turn;
+//  pos.gamePly = gamePly_;
+//
+//  return pos.sfen();
+//
+// // Implementation of ↑ is beautiful, but slow.
+// // This is a bottleneck when learning a large amount of game records, so write a function to unpack directly.
+//}
+
+// Get the packed sfen. Returns to the buffer specified in the argument.
+void Position::sfen_pack(Learner::PackedSfen& sfen)
+{
+  sfen = Learner::sfen_pack(*this);
 }
