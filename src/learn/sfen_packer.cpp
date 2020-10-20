@@ -140,6 +140,7 @@ namespace Learner {
 
     constexpr HuffmanedPiece huffman_table[] =
     {
+        // TODO
         {0b0000,1}, // NO_PIECE
         {0b0001,4}, // PAWN
         {0b0011,4}, // KNIGHT

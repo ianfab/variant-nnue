@@ -5890,6 +5890,7 @@ namespace binpack
         // NOTE: Order adjusted for this library because originally NO_PIECE had index 0
         constexpr HuffmanedPiece huffman_table[] =
         {
+            // TODO
             {0b0001,4}, // PAWN     1
             {0b0011,4}, // KNIGHT   3
             {0b0101,4}, // BISHOP   5
