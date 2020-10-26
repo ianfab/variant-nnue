@@ -381,6 +381,7 @@ namespace Learner
                 ? -1 /* mate */
                 : 0 /* stalemate */;
         }
+        assert(!pos.is_immediate_game_end());
 
         // Adjudicate game to a draw if the last 4 scores of each engine is 0.
         if (detect_draw_by_consecutive_low_score)
@@ -420,6 +421,7 @@ namespace Learner
         // Draw by insufficient mating material
         if (detect_draw_by_insufficient_mating_material)
         {
+            // TODO: use insufficient_material
             if (pos.count<ALL_PIECES>() <= 4)
             {
                 int num_pieces = pos.count<ALL_PIECES>();
@@ -808,6 +810,9 @@ namespace Learner
 
                 // Do move.
                 pos.do_move(next_move, states[ply]);
+
+                if (pos.is_immediate_game_end())
+                    break;
 
             } // for (int ply = 0; ; ++ply)
 
