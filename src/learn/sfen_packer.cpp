@@ -4,6 +4,7 @@
 
 #include "misc.h"
 #include "position.h"
+#include "uci.h"
 
 #include <sstream>
 #include <fstream>
@@ -140,7 +141,6 @@ namespace Learner {
 
     constexpr HuffmanedPiece huffman_table[] =
     {
-        // TODO
         {0b0000,1}, // NO_PIECE
         {0b0001,4}, // PAWN
         {0b0011,4}, // KNIGHT
@@ -235,7 +235,7 @@ namespace Learner {
 
             assert(bits <= 6);
 
-            for (pr = NO_PIECE_TYPE; pr <KING; ++pr)
+            for (pr = NO_PIECE_TYPE; pr <= QUEEN; ++pr)
                 if (huffman_table[pr].code == code
                     && huffman_table[pr].bits == bits)
                     goto Found;
@@ -263,6 +263,7 @@ namespace Learner {
         std::memset(si, 0, sizeof(StateInfo));
         std::fill_n(&pos.pieceList[0][0], sizeof(pos.pieceList) / sizeof(Square), SQ_NONE);
         pos.st = si;
+        pos.var = variants.find(Options["UCI_Variant"])->second;
 
         // Active color
         pos.sideToMove = (Color)stream.read_one_bit();

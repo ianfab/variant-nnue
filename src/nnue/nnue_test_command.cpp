@@ -27,7 +27,7 @@ namespace Eval::NNUE {
         void test_features(Position& pos) {
             const std::uint64_t num_games = 1000;
             StateInfo si;
-            pos.set(pos.variant(), StartFEN, false, &si, Threads.main());
+            pos.set(pos.variant(), pos.variant()->startFen, false, &si, Threads.main());
             const int MAX_PLY = 256; // test up to 256 hands
 
             StateInfo state[MAX_PLY]; // StateInfo only for the maximum number of steps
@@ -121,7 +121,7 @@ namespace Eval::NNUE {
                     ASSERT(index_sets == make_index_sets(pos));
                 }
 
-                pos.set(pos.variant(), StartFEN, false, &si, Threads.main());
+                pos.set(pos.variant(), pos.variant()->startFen, false, &si, Threads.main());
 
                 // Output'.' every 100 times (so you can see that it's progressing)
                 if ((i % 100) == 0)

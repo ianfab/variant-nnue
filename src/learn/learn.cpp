@@ -771,7 +771,7 @@ namespace Learner
         auto th = Threads[thread_id];
         auto& pos = th->rootPos;
         StateInfo si;
-        pos.set(pos.variant(), StartFEN, false, &si, th);
+        pos.set(variants.find(Options["UCI_Variant"])->second, variants.find(Options["UCI_Variant"])->second->startFen, false, &si, th);
         cout << "startpos eval = " << Eval::evaluate(pos) << endl;
 
         // It's better to parallelize here, but it's a bit

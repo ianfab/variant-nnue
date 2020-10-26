@@ -664,7 +664,7 @@ namespace Learner
             auto th = Threads[thread_id];
 
             auto& pos = th->rootPos;
-            pos.set(variants.find(Options["UCI_Variant"])->second, StartFEN, false, &si, th);
+            pos.set(variants.find(Options["UCI_Variant"])->second, variants.find(Options["UCI_Variant"])->second->startFen, false, &si, th);
 
             int resign_counter = 0;
             bool should_resign = prng.rand(10) > 1;
