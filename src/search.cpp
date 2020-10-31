@@ -2167,16 +2167,14 @@ namespace Search
     ss->pv = pv; // For the time being, it must be a dummy and somewhere with a buffer.
 
     Value v;
-    if (pos.is_game_end(v) && v == VALUE_DRAW) {
-      // Return draw value if draw.
-      return { VALUE_DRAW, {} };
-    }
+    if (pos.is_game_end(v))
+      return { v, {} };
 
     // Is it stuck?
     if (MoveList<LEGAL>(pos).size() == 0)
     {
       // Return the mated value if checkmated.
-      return { mated_in(/*ss->ply*/ 0 + 1), {} };
+      return { mated_in(/*ss->ply*/ 0 + 1), {} }; // TODO: checkmate value
     }
 
     auto bestValue = ::qsearch<PV>(pos, ss, -VALUE_INFINITE, VALUE_INFINITE, 0);

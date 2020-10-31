@@ -368,20 +368,19 @@ namespace Learner
         const int ply = move_hist_scores.size();
 
         // has it reached the max length or is a draw
-        Value v;
-        if (ply >= write_maxply || (pos.is_game_end(v) && v == VALUE_DRAW))
+        Value v = VALUE_DRAW;
+        if (ply >= write_maxply || pos.is_game_end(v))
         {
-            return 0;
+            return v > 0 ? 1 : v < 0 ? -1 : 0;
         }
 
         if(pos.this_thread()->rootMoves.empty())
         {
             // If there is no legal move
             return pos.checkers()
-                ? -1 /* mate */
+                ? -1 /* mate */ // TODO: checkmate value
                 : 0 /* stalemate */;
         }
-        assert(!pos.is_immediate_game_end());
 
         // Adjudicate game to a draw if the last 4 scores of each engine is 0.
         if (detect_draw_by_consecutive_low_score)
