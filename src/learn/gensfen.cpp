@@ -368,19 +368,23 @@ namespace Learner
         // draw at the maximum number of steps to write.
         const int ply = move_hist_scores.size();
 
+        std::function <int (Value)> sign = [](Value v) {
+            return v > 0 ? 1 : v < 0 ? -1 : 0;
+        };
+
         // has it reached the max length or is a draw
         Value v = VALUE_DRAW;
         if (ply >= write_maxply || pos.is_game_end(v))
         {
-            return v > 0 ? 1 : v < 0 ? -1 : 0;
+            return sign(v);
         }
 
         if(pos.this_thread()->rootMoves.empty())
         {
             // If there is no legal move
             return pos.checkers()
-                ? -1 /* mate */ // TODO: checkmate value
-                : 0 /* stalemate */;
+                ? sign(pos.checkmate_value()) /* mate */
+                : sign(pos.stalemate_value()) /* stalemate */;
         }
 
         // Adjudicate game to a draw if the last 4 scores of each engine is 0.
