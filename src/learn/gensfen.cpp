@@ -9,6 +9,7 @@
 #include "thread.h"
 #include "tt.h"
 #include "uci.h"
+#include "apiutil.h"
 
 #include "extra/nnue_data_binpack_format.h"
 
@@ -418,50 +419,11 @@ namespace Learner
         }
 
         // Draw by insufficient mating material
-        if (detect_draw_by_insufficient_mating_material)
+        if (detect_draw_by_insufficient_mating_material
+            && hasInsufficientMaterial(WHITE, pos)
+            && hasInsufficientMaterial(BLACK, pos))
         {
-            // TODO: use insufficient_material
-            if (pos.count<ALL_PIECES>() <= 4)
-            {
-                int num_pieces = pos.count<ALL_PIECES>();
-
-                // (1) KvK
-                if (num_pieces == 2)
-                {
-                    return 0;
-                }
-
-                // (2) KvK + 1 minor piece
-                if (num_pieces == 3)
-                {
-                    int minor_pc = pos.count<BISHOP>(WHITE) + pos.count<KNIGHT>(WHITE) +
-                        pos.count<BISHOP>(BLACK) + pos.count<KNIGHT>(BLACK);
-                    if (minor_pc == 1)
-                    {
-                        return 0;
-                    }
-                }
-
-                // (3) KBvKB, bishops of the same color
-                else if (num_pieces == 4)
-                {
-                    if (pos.count<BISHOP>(WHITE) == 1 && pos.count<BISHOP>(BLACK) == 1)
-                    {
-                        // Color of bishops is black.
-                        if ((pos.pieces(WHITE, BISHOP) & DarkSquares)
-                            && (pos.pieces(BLACK, BISHOP) & DarkSquares))
-                        {
-                            return 0;
-                        }
-                        // Color of bishops is white.
-                        if ((pos.pieces(WHITE, BISHOP) & ~DarkSquares)
-                            && (pos.pieces(BLACK, BISHOP) & ~DarkSquares))
-                        {
-                            return 0;
-                        }
-                    }
-                }
-            }
+            return 0;
         }
 
         return nullopt;
