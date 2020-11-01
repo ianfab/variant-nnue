@@ -57,6 +57,7 @@ namespace Eval::NNUE::Features {
             // kFeaturesHalfKP
             IndexType index_offset = append_base_feature<FeatureType>(
                 kProperties[kFeaturesHalfKP], base_index, training_features);
+            return;
 
             const auto sq_k = static_cast<Square>(base_index / PS_END);
             const auto p = static_cast<IndexType>(base_index % PS_END);
