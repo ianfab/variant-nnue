@@ -25,7 +25,7 @@ namespace Eval::NNUE::Features {
 
     // Orient a square according to perspective (flip rank for black)
     inline Square orient(Color perspective, Square s) {
-        return Square(int(s) ^ (bool(perspective) * SQ_A8));
+        return Square(int(s) ^ (bool(perspective) * SQ_H8));
     }
 
     // Find the index of the feature quantity from the king position and PieceSquare
