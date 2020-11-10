@@ -213,6 +213,14 @@ namespace Learner {
     {
         // piece type
         PieceType pr = type_of(pc);
+        if (pr > QUEEN)
+        {
+            pr =  pr == FERS ? QUEEN
+                : pr == SILVER ? BISHOP
+                : pr == ALFIL ? BISHOP
+                : NO_PIECE_TYPE;
+            assert(pr != NO_PIECE_TYPE);
+        }
         auto c = huffman_table[pr];
         stream.write_n_bit(c.code, c.bits);
 
@@ -288,6 +296,13 @@ namespace Learner {
                 {
                     assert(pos.board[sq] == NO_PIECE);
                     pc = packer.read_board_piece_from_stream();
+                    // Disambiguate aliases
+                    if (type_of(pc) == QUEEN && pos.piece_types().find(FERS) != pos.piece_types().end())
+                        pc = make_piece(color_of(pc), FERS);
+                    else if (type_of(pc) == BISHOP && pos.piece_types().find(SILVER) != pos.piece_types().end())
+                        pc = make_piece(color_of(pc), SILVER);
+                    else if (type_of(pc) == BISHOP && pos.piece_types().find(ALFIL) != pos.piece_types().end())
+                        pc = make_piece(color_of(pc), ALFIL);
                 }
                 else
                 {
