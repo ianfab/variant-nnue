@@ -213,11 +213,20 @@ namespace Learner {
     {
         // piece type
         PieceType pr = type_of(pc);
+        // Map fairy pieces to standard chess equivalents
         if (pr > QUEEN)
         {
             pr =  pr == FERS ? QUEEN
-                : pr == SILVER ? BISHOP
                 : pr == ALFIL ? BISHOP
+                : pr == FERS_ALFIL ? BISHOP
+                : pr == SILVER ? BISHOP
+                : pr == AIWOK ? QUEEN
+                : pr == BERS ? QUEEN
+                : pr == AMAZON ? QUEEN
+                : pr == KNIBIS ? KNIGHT
+                : pr == BISKNI ? BISHOP
+                : pr == KNIROO ? KNIGHT
+                : pr == ROOKNI ? ROOK
                 : NO_PIECE_TYPE;
             assert(pr != NO_PIECE_TYPE);
         }
@@ -296,13 +305,29 @@ namespace Learner {
                 {
                     assert(pos.board[sq] == NO_PIECE);
                     pc = packer.read_board_piece_from_stream();
-                    // Disambiguate aliases
+                    // Disambiguate fairy piece aliases
                     if (type_of(pc) == QUEEN && pos.piece_types().find(FERS) != pos.piece_types().end())
                         pc = make_piece(color_of(pc), FERS);
-                    else if (type_of(pc) == BISHOP && pos.piece_types().find(SILVER) != pos.piece_types().end())
-                        pc = make_piece(color_of(pc), SILVER);
                     else if (type_of(pc) == BISHOP && pos.piece_types().find(ALFIL) != pos.piece_types().end())
                         pc = make_piece(color_of(pc), ALFIL);
+                    else if (type_of(pc) == BISHOP && pos.piece_types().find(FERS_ALFIL) != pos.piece_types().end())
+                        pc = make_piece(color_of(pc), FERS_ALFIL);
+                    else if (type_of(pc) == BISHOP && pos.piece_types().find(SILVER) != pos.piece_types().end())
+                        pc = make_piece(color_of(pc), SILVER);
+                    else if (type_of(pc) == QUEEN && pos.piece_types().find(AIWOK) != pos.piece_types().end())
+                        pc = make_piece(color_of(pc), AIWOK);
+                    else if (type_of(pc) == QUEEN && pos.piece_types().find(BERS) != pos.piece_types().end())
+                        pc = make_piece(color_of(pc), BERS);
+                    else if (type_of(pc) == QUEEN && pos.piece_types().find(AMAZON) != pos.piece_types().end())
+                        pc = make_piece(color_of(pc), AMAZON);
+                    else if (type_of(pc) == KNIGHT && pos.piece_types().find(KNIBIS) != pos.piece_types().end())
+                        pc = make_piece(color_of(pc), KNIBIS);
+                    else if (type_of(pc) == BISHOP && pos.piece_types().find(BISKNI) != pos.piece_types().end())
+                        pc = make_piece(color_of(pc), BISKNI);
+                    else if (type_of(pc) == KNIGHT && pos.piece_types().find(KNIROO) != pos.piece_types().end())
+                        pc = make_piece(color_of(pc), KNIROO);
+                    else if (type_of(pc) == ROOK && pos.piece_types().find(ROOKNI) != pos.piece_types().end())
+                        pc = make_piece(color_of(pc), ROOKNI);
                 }
                 else
                 {
