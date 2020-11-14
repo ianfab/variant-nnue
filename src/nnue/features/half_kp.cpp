@@ -24,19 +24,20 @@
 namespace Eval::NNUE::Features {
 
     // Orient a square according to perspective (flip rank for black)
-    inline Square orient(Color perspective, Square s) {
-        return Square(int(s) ^ (bool(perspective) * SQ_H8));
+    inline Square orient(const Position& pos, Color perspective, Square s) {
+        return (pos.capture_the_flag(BLACK) & Rank8BB) ? s : Square(int(s) ^ (bool(perspective) * SQ_H8));
     }
 
     // Find the index of the feature quantity from the king position and PieceSquare
     template <Side AssociatedKing>
     inline IndexType HalfKP<AssociatedKing>::make_index(
+        const Position& pos,
         Color perspective,
         Square s,
         Piece pc,
         Square ksq) {
 
-        return IndexType(orient(perspective, s) + kpp_board_index[pc][perspective] + PS_END * ksq);
+        return IndexType(orient(pos, perspective, s) + kpp_board_index[pc][perspective] + PS_END * ksq);
     }
 
     // Get a list of indices for active features
@@ -47,6 +48,7 @@ namespace Eval::NNUE::Features {
         IndexList* active) {
 
         Square ksq = orient(
+            pos,
             perspective,
             pos.square<KING>(
                 AssociatedKing == Side::kFriend ? perspective : ~perspective));
@@ -54,7 +56,7 @@ namespace Eval::NNUE::Features {
         Bitboard bb = pos.pieces() & ~pos.pieces(KING);
         while (bb) {
             Square s = pop_lsb(&bb);
-            active->push_back(make_index(perspective, s, pos.piece_on(s), ksq));
+            active->push_back(make_index(pos, perspective, s, pos.piece_on(s), ksq));
         }
     }
 
@@ -67,6 +69,7 @@ namespace Eval::NNUE::Features {
         IndexList* added) {
 
         Square ksq = orient(
+            pos,
             perspective,
             pos.square<KING>(
                 AssociatedKing == Side::kFriend ? perspective : ~perspective));
@@ -79,10 +82,10 @@ namespace Eval::NNUE::Features {
                 continue;
 
             if (dp.from[i] != SQ_NONE)
-                removed->push_back(make_index(perspective, dp.from[i], pc, ksq));
+                removed->push_back(make_index(pos, perspective, dp.from[i], pc, ksq));
 
             if (dp.to[i] != SQ_NONE)
-                added->push_back(make_index(perspective, dp.to[i], pc, ksq));
+                added->push_back(make_index(pos, perspective, dp.to[i], pc, ksq));
         }
     }
 
