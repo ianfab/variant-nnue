@@ -23,9 +23,15 @@
 
 namespace Eval::NNUE::Features {
 
-    // Orient a square according to perspective (flip rank for black)
+    // Map square to numbering on 8x8 board
+    constexpr Square map_to_standard_board(Square s) {
+        return Square(s - rank_of(s) * (FILE_MAX - FILE_H));
+    }
+
+    // Orient a square according to perspective (rotates by 180 for black)
     inline Square orient(const Position& pos, Color perspective, Square s) {
-        return (pos.capture_the_flag(BLACK) & Rank8BB) ? s : Square(int(s) ^ (bool(perspective) * SQ_H8));
+        return map_to_standard_board(  perspective == WHITE || (pos.capture_the_flag(BLACK) & Rank8BB) ? s
+                                    : flip_rank(flip_file(s, pos.max_file()), pos.max_rank()));
     }
 
     // Find the index of the feature quantity from the king position and PieceSquare
