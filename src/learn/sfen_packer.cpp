@@ -406,6 +406,13 @@ namespace Learner {
 
         assert(stream.get_cursor() <= 256);
 
+        if (pos.check_counting())
+        {
+            // Assume 3check
+            pos.st->checksRemaining[WHITE] = CheckCount(3);
+            pos.st->checksRemaining[BLACK] = CheckCount(3);
+        }
+
         pos.chess960 = false;
         pos.thisThread = th;
         pos.set_state(pos.st);
