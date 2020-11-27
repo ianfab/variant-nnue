@@ -1380,10 +1380,9 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
       if (Eval::NNUE::useNNUE != Eval::NNUE::UseNNUEMode::False)
       {
           // Add drop piece
-          dp.piece[dp.dirty_num] = pc;
-          dp.from[dp.dirty_num] = SQ_NONE;
-          dp.to[dp.dirty_num] = to;
-          dp.dirty_num++;
+          dp.piece[0] = pc;
+          dp.from[0] = SQ_NONE;
+          dp.to[0] = to;
       }
 
       drop_piece(make_piece(us, in_hand_piece_type(m)), pc, to);
