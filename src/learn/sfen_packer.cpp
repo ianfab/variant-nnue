@@ -227,6 +227,9 @@ namespace Learner {
                 : pr == BISKNI ? BISHOP
                 : pr == KNIROO ? KNIGHT
                 : pr == ROOKNI ? ROOK
+                : pr == SOLDIER ? PAWN
+                : pr == HORSE ? KNIGHT
+                : pr == CANNON ? BISHOP
                 : NO_PIECE_TYPE;
             assert(pr != NO_PIECE_TYPE);
         }
@@ -328,6 +331,12 @@ namespace Learner {
                         pc = make_piece(color_of(pc), KNIROO);
                     else if (type_of(pc) == ROOK && pos.piece_types().find(ROOKNI) != pos.piece_types().end())
                         pc = make_piece(color_of(pc), ROOKNI);
+                    else if (type_of(pc) == PAWN && pos.piece_types().find(SOLDIER) != pos.piece_types().end())
+                        pc = make_piece(color_of(pc), SOLDIER);
+                    else if (type_of(pc) == KNIGHT && pos.piece_types().find(HORSE) != pos.piece_types().end())
+                        pc = make_piece(color_of(pc), HORSE);
+                    else if (type_of(pc) == BISHOP && pos.piece_types().find(CANNON) != pos.piece_types().end())
+                        pc = make_piece(color_of(pc), CANNON);
                 }
                 else
                 {
