@@ -30,8 +30,7 @@ namespace Eval::NNUE::Features {
 
     // Orient a square according to perspective (rotates by 180 for black)
     inline Square orient(const Position& pos, Color perspective, Square s) {
-        return map_to_standard_board(  perspective == WHITE ? s
-                                    : pos.capture_the_flag(BLACK) & Rank8BB ? flip_file(s, pos.max_file())
+        return map_to_standard_board(  perspective == WHITE || (pos.capture_the_flag(BLACK) & Rank8BB) ? s
                                     : flip_rank(flip_file(s, pos.max_file()), pos.max_rank()));
     }
 
