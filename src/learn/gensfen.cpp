@@ -730,7 +730,6 @@ namespace Learner
                 }
 
                 // Pack the current position into a packed sfen and save it into the buffer.
-                if (!pos.check_counting() || pos.checks_remaining(WHITE) == pos.checks_remaining(BLACK))
                 {
                     a_psv.emplace_back(PackedSfenValue());
                     auto& psv = a_psv.back();
