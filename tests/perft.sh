@@ -44,7 +44,9 @@ if [[ $1 == "" || $1 == "variant" ]]; then
   expect perft.exp newzealand startpos 5 4987426 > /dev/null
   expect perft.exp loop startpos 5 4888832 > /dev/null
   expect perft.exp chessgi startpos 5 4889167 > /dev/null
-  expect perft.exp racingkings startpos 5 9472927 > /dev/null
+  expect perft.exp racingkings startpos 4 296242 > /dev/null
+  expect perft.exp racingkings "fen 6r1/2K5/5k2/8/3R4/8/8/8 w - - 0 1" 4 86041 > /dev/null
+  expect perft.exp racingkings "fen 6R1/2k5/5K2/8/3r4/8/8/8 b - - 0 1" 4 86009 > /dev/null
   expect perft.exp knightmate startpos 5 3249033 > /dev/null
   expect perft.exp losers startpos 5 2723795 > /dev/null
   expect perft.exp antichess startpos 5 2732672 > /dev/null
@@ -54,7 +56,8 @@ if [[ $1 == "" || $1 == "variant" ]]; then
   expect perft.exp euroshogi startpos 5 9451149 > /dev/null
   expect perft.exp minishogi startpos 5 533203 > /dev/null
   expect perft.exp kyotoshogi startpos 5 225903 > /dev/null
-  expect perft.exp horde startpos 6 5396554 > /dev/null
+  expect perft.exp horde startpos 5 265223 > /dev/null
+  expect perft.exp horde "fen 4k3/7r/8/P7/2p1n2P/3p2P1/1P3P2/PPP1PPP1 w - - 0 1" 4 128809 > /dev/null
   expect perft.exp placement startpos 4 1597696 > /dev/null
   expect perft.exp sittuyin startpos 3 580096 > /dev/null
   expect perft.exp sittuyin "fen 8/8/6R1/s3r3/P5R1/1KP3p1/1F2kr2/8[] b - - 0 72" 4 652686 > /dev/null

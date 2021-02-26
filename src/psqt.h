@@ -16,26 +16,24 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef EVALUATE_H_INCLUDED
-#define EVALUATE_H_INCLUDED
 
-#include <string>
+#ifndef PSQT_H_INCLUDED
+#define PSQT_H_INCLUDED
+
 
 #include "types.h"
 
-class Position;
+#include "variant.h"
 
-namespace Eval {
+namespace PSQT
+{
 
-  Value tempo_value(const Position& pos);
-  std::string trace(const Position& pos);
-  Value evaluate(const Position& pos);
+extern Score psq[PIECE_NB][SQUARE_NB + 1];
 
-  // The default net name MUST follow the format nn-[SHA256 first 12 digits].nnue
-  // for the build process (profile-build and fishtest) to work. Do not change the
-  // name of the macro, as it is used in the Makefile.
-  #define EvalFileDefaultName   "nn-62ef826d1a6d.nnue"
+// Fill psqt array from a set of internally linked parameters
+extern void init(const Variant*);
 
-} // namespace Eval
+} // namespace PSQT
 
-#endif // #ifndef EVALUATE_H_INCLUDED
+
+#endif // PSQT_H_INCLUDED

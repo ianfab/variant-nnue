@@ -1,6 +1,6 @@
 /*
   Stockfish, a UCI chess playing engine derived from Glaurung 2.1
-  Copyright (C) 2004-2020 The Stockfish developers (see AUTHORS file)
+  Copyright (C) 2004-2021 The Stockfish developers (see AUTHORS file)
 
   Stockfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -345,7 +345,7 @@ void UCI::loop(int argc, char* argv[]) {
       cmd += std::string(argv[i]) + " ";
 
   // XBoard state machine
-  XBoard::StateMachine xboardStateMachine;
+  XBoard::stateMachine = new XBoard::StateMachine(pos, states);
   // UCCI banmoves state
   std::vector<Move> banmoves = {};
 
@@ -372,18 +372,24 @@ void UCI::loop(int argc, char* argv[]) {
       else if (token == "uci" || token == "usi" || token == "ucci" || token == "xboard")
       {
           Options["Protocol"].set_default(token);
-          string defaultVariant = string(  token == "usi"  ? "shogi"
+          string defaultVariant = string(
+#ifdef LARGEBOARDS
+                                           token == "usi"  ? "shogi"
                                          : token == "ucci" ? "xiangqi"
+#else
+                                           token == "usi"  ? "minishogi"
+                                         : token == "ucci" ? "minixiangqi"
+#endif
                                                            : "chess");
           Options["UCI_Variant"].set_default(defaultVariant);
-          if (token != "xboard")
+          if (token == "uci" || token == "usi" || token == "ucci")
               sync_cout << "id name " << engine_info(true)
                           << "\n" << Options
                           << "\n" << token << "ok"  << sync_endl;
       }
 
       else if (Options["Protocol"] == "xboard")
-          xboardStateMachine.process_command(pos, token, is, states);
+          XBoard::stateMachine->process_command(token, is);
 
       else if (token == "setoption")  setoption_from_stream(is);
       // UCCI-specific banmoves command
@@ -486,7 +492,7 @@ std::string UCI::square(const Position& pos, Square s) {
                                   : std::string{ char('0' + (pos.max_file() - file_of(s) + 1) / 10),
                                                  char('0' + (pos.max_file() - file_of(s) + 1) % 10),
                                                  char('a' + pos.max_rank() - rank_of(s)) };
-  else if ((Options["Protocol"] == "xboard" || Options["Protocol"] == "ucci") && pos.max_rank() == RANK_10)
+  else if (pos.max_rank() == RANK_10 && Options["Protocol"] != "uci")
       return std::string{ char('a' + file_of(s)), char('0' + rank_of(s)) };
   else
       return rank_of(s) < RANK_10 ? std::string{ char('a' + file_of(s)), char('1' + (rank_of(s) % 10)) }
@@ -527,7 +533,7 @@ string UCI::move(const Position& pos, Move m) {
       return "0000";
 
   if (is_pass(m) && Options["Protocol"] == "xboard")
-      return "pass";
+      return "@@@@";
 
   if (is_gating(m) && gating_square(m) == to)
       from = to_sq(m), to = from_sq(m);

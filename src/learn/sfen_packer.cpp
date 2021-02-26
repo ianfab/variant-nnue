@@ -170,7 +170,7 @@ namespace Learner {
             for (File f = FILE_A; f <= FILE_H; ++f)
             {
                 Piece pc = pos.piece_on(make_square(f, r));
-                if (type_of(pc) == KING)
+                if (type_of(pc) == pos.nnue_king())
                     continue;
                 write_board_piece_to_stream(pc);
             }
@@ -281,19 +281,15 @@ namespace Learner {
 
         pos.clear();
         std::memset(si, 0, sizeof(StateInfo));
-        std::fill_n(&pos.pieceList[0][0], sizeof(pos.pieceList) / sizeof(Square), SQ_NONE);
         pos.st = si;
         pos.var = variants.find(Options["UCI_Variant"])->second;
 
         // Active color
         pos.sideToMove = (Color)stream.read_one_bit();
 
-        pos.pieceList[make_piece(WHITE, KING)][0] = SQUARE_NB;
-        pos.pieceList[make_piece(BLACK, KING)][0] = SQUARE_NB;
-
         // First the position of the ball
         for (auto c : Colors)
-            pos.board[stream.read_n_bit(6)] = make_piece(c, KING);
+            pos.board[stream.read_n_bit(6)] = make_piece(c, pos.nnue_king());
 
         // Piece placement
         for (Rank r = RANK_8; r >= RANK_1; --r)
@@ -304,7 +300,7 @@ namespace Learner {
 
                 // it seems there are already balls
                 Piece pc;
-                if (type_of(pos.board[sq]) != KING)
+                if (type_of(pos.board[sq]) != pos.nnue_king())
                 {
                     assert(pos.board[sq] == NO_PIECE);
                     pc = packer.read_board_piece_from_stream();

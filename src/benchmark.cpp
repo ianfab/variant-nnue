@@ -1,6 +1,6 @@
 /*
   Stockfish, a UCI chess playing engine derived from Glaurung 2.1
-  Copyright (C) 2004-2020 The Stockfish developers (see AUTHORS file)
+  Copyright (C) 2004-2021 The Stockfish developers (see AUTHORS file)
 
   Stockfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -131,11 +131,7 @@ vector<string> setup_bench(const Position& current, istream& is) {
   string limit     = (is >> token) ? token : "13";
   string fenFile   = (is >> token) ? token : "default";
   string limitType = (is >> token) ? token : "depth";
-#ifdef USE_NNUE
   string evalType  = (is >> token) ? token : "mixed";
-#else
-  string evalType  = (is >> token) ? token : "classic";
-#endif
 
   go = limitType == "eval" ? "eval" : "go " + limitType + " " + limit;
 
@@ -189,11 +185,7 @@ vector<string> setup_bench(const Position& current, istream& is) {
           ++posCounter;
       }
 
-#ifdef USE_NNUE
   list.emplace_back("setoption name Use NNUE value true");
-#else
-  list.emplace_back("setoption name Use NNUE value false");
-#endif
 
   return list;
 }

@@ -1,6 +1,6 @@
 /*
   Stockfish, a UCI chess playing engine derived from Glaurung 2.1
-  Copyright (C) 2004-2020 The Stockfish developers (see AUTHORS file)
+  Copyright (C) 2004-2021 The Stockfish developers (see AUTHORS file)
 
   Stockfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 #include "uci.h"
 #include "syzygy/tbprobe.h"
 #include "tt.h"
+#include "xboard.h"
 
 ThreadPool Threads; // Global object
 
@@ -125,6 +126,12 @@ void Thread::idle_loop() {
       searching = false;
       worker = nullptr;
       cv.notify_one(); // Wake up anyone waiting for search finished
+      // Start ponder search from separate thread to prevent deadlock
+      if (Threads.size() && this == Threads.main() && XBoard::stateMachine && XBoard::stateMachine->ponderMove)
+      {
+          NativeThread t(&XBoard::StateMachine::ponder, XBoard::stateMachine);
+          t.detach();
+      }
       cv.wait(lk, [&]{ return searching; });
 
       if (exit)

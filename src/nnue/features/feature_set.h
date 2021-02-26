@@ -121,15 +121,15 @@ namespace Eval::NNUE::Features {
                         break;
                     case TriggerEvent::kFriendKingMoved:
                         if (dp.dirty_num == 0) continue;
-                        reset[perspective] = dp.piece[0] == make_piece(perspective, KING);
+                        reset[perspective] = dp.piece[0] == make_piece(perspective, pos.nnue_king());
                         break;
                     case TriggerEvent::kEnemyKingMoved:
                         if (dp.dirty_num == 0) continue;
-                        reset[perspective] = dp.piece[0] == make_piece(~perspective, KING);
+                        reset[perspective] = dp.piece[0] == make_piece(~perspective, pos.nnue_king());
                         break;
                     case TriggerEvent::kAnyKingMoved:
                         if (dp.dirty_num == 0) continue;
-                        reset[perspective] = type_of(dp.piece[0]) == KING;
+                        reset[perspective] = type_of(dp.piece[0]) == pos.nnue_king();
                         break;
                     case TriggerEvent::kAnyPieceMoved:
                         reset[perspective] = true;

@@ -56,10 +56,10 @@ namespace Eval::NNUE::Features {
         Square ksq = orient(
             pos,
             perspective,
-            pos.square<KING>(
-                AssociatedKing == Side::kFriend ? perspective : ~perspective));
+            pos.square(
+                AssociatedKing == Side::kFriend ? perspective : ~perspective, pos.nnue_king()));
 
-        Bitboard bb = pos.pieces() & ~pos.pieces(KING);
+        Bitboard bb = pos.pieces() & ~pos.pieces(pos.nnue_king());
         while (bb) {
             Square s = pop_lsb(&bb);
             active->push_back(make_index(pos, perspective, s, pos.piece_on(s), ksq));
@@ -77,14 +77,14 @@ namespace Eval::NNUE::Features {
         Square ksq = orient(
             pos,
             perspective,
-            pos.square<KING>(
-                AssociatedKing == Side::kFriend ? perspective : ~perspective));
+            pos.square(
+                AssociatedKing == Side::kFriend ? perspective : ~perspective, pos.nnue_king()));
 
         const auto& dp = pos.state()->dirtyPiece;
         for (int i = 0; i < dp.dirty_num; ++i) {
             Piece pc = dp.piece[i];
 
-            if (type_of(pc) == KING)
+            if (type_of(pc) == pos.nnue_king())
                 continue;
 
             if (dp.from[i] != SQ_NONE)
