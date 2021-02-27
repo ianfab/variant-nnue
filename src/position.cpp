@@ -1753,6 +1753,8 @@ void Position::undo_move(Move m) {
                                                                                : ~unpromotedBpc);
           }
       }
+      // Reset piece since it exploded itself
+      pc = piece_on(to);
   }
 
   // Remove gated piece

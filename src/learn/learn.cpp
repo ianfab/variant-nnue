@@ -813,6 +813,7 @@ namespace Learner
                     // Unfortunately, as an sfen for rmse calculation, an invalid sfen was drawn.
                     cout << "Error! : illegal packed sfen " << task_pos.fen() << endl;
                 }
+                // cout << "Legal packed sfen " << task_pos.fen() << " moves " << ps.move << endl;
 
                 const Value shallow_value = get_shallow_value(task_pos);
 

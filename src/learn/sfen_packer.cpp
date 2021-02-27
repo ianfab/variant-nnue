@@ -354,6 +354,18 @@ namespace Learner {
 
         // Castling availability.
         // TODO(someone): Support chess960.
+
+        // Determine castling "king" position
+        if (pos.castling_enabled())
+        {
+            for (Color c : {WHITE, BLACK})
+            {
+                Bitboard castlingKings = pos.pieces(c, pos.castling_king_piece()) & rank_bb(pos.castling_rank(c));
+                pos.st->castlingKingSquare[c] =  popcount(castlingKings) == 1 ? lsb(castlingKings)
+                                               : make_square(pos.castling_king_file(), pos.castling_rank(c));
+            }
+        }
+
         pos.st->castlingRights = 0;
         if (stream.read_one_bit()) {
             Square rsq;
