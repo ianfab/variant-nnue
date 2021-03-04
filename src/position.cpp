@@ -1262,6 +1262,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
       ++st->countingPly;
 
   // Used by NNUE
+  st->accumulator.computed_accumulation = false;
   auto& dp = st->dirtyPiece;
   dp.dirty_num = 1;
 
