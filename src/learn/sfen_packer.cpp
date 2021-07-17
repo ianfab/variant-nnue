@@ -230,6 +230,9 @@ namespace Learner {
                 : pr == SOLDIER ? PAWN
                 : pr == HORSE ? KNIGHT
                 : pr == CANNON ? BISHOP
+                : pr == CLOBBER_PIECE ? PAWN
+                : pr == BREAKTHROUGH_PIECE ? PAWN
+                : pr == IMMOBILE_PIECE ? PAWN
                 : NO_PIECE_TYPE;
             assert(pr != NO_PIECE_TYPE);
         }

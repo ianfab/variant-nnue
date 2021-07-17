@@ -324,7 +324,7 @@ public:
   //static std::string sfen_from_rawdata(Piece board[81], Hand hands[2], Color turn, int gamePly);
 
   // Returns the position of the ball on the c side.
-  Square king_square(Color c) const { return square(c, nnue_king()); }
+  Square king_square(Color c) const { return count(c, nnue_king()) == 1 ? square(c, nnue_king()) : Square(count<ALL_PIECES>(c)); }
 
 private:
   // Initialization helpers (used while setting up a position)
