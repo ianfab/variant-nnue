@@ -176,9 +176,7 @@ struct Variant {
                                 })
                     && !cambodianMoves
                     && !diagonalLines;
-      nnueKing =  pieceTypes.find(KING) != pieceTypes.end() ? KING
-                : extinctionPieceTypes.find(COMMONER) != extinctionPieceTypes.end() ? COMMONER
-                : NO_PIECE_TYPE;
+      nnueKing = extinctionPieceTypes.find(COMMONER) != extinctionPieceTypes.end() ? COMMONER : KING;
       return this;
   }
 };
